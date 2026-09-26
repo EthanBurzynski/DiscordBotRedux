@@ -1,0 +1,17 @@
+# secrets
+.env
+convert_cookies.py
+
+# python environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# bot data
+data/
+temp/
+assets/songs/
+
+# extras
+accounts.db
