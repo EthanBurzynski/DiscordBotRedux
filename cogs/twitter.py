@@ -23,6 +23,7 @@ TOURNAMENT_ROUNDS = [
     (7, False, 4, "TIME FOR THE FINAL BATTLE!!!"),
 ]
 
+UGLY_GLOBAL_FOR_MOST_RECENT_NUMBER_OF_TWEETS_GRABBED = 0
 
 class Twitter(commands.Cog):
     def __init__(self, bot):
@@ -103,7 +104,7 @@ class Twitter(commands.Cog):
 
         if len(all_tweets) < 16:
             await interaction.edit_original_response(
-                content="not enough stored tweets for a tournament"
+                content=f"not enough stored tweets for a tournament, current # of stored tweets: {len(all_tweets)}, # of tweets most recently fetched: {UGLY_GLOBAL_FOR_MOST_RECENT_NUMBER_OF_TWEETS_GRABBED}"
             )
             return
 
@@ -198,6 +199,7 @@ class Twitter(commands.Cog):
                     print(f"[twikit] Could not fetch additional results: {e}")
 
             print(f"[twikit] Fetched {len(new_tweets)} new tweets.")
+            UGLY_GLOBAL_FOR_MOST_RECENT_NUMBER_OF_TWEETS_GRABBED = len(new_tweets)
 
         except Exception as e:
             print(f"[twikit] Fetch failed: {e}")
