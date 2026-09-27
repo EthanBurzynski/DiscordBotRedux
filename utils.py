@@ -1,6 +1,15 @@
 """Small helpers used by more than one cog. Must not import from bot.py or cogs."""
 import asyncio
+import json
+import re
+
 import aiohttp
+import discord
+import matplotlib
+matplotlib.use("Agg")  # render graphs to files only; never try to open a window
+import matplotlib.pyplot as plt
+
+from config import MESSAGE_FILE_PATH, temp_path
 
 
 async def urllib_download(imgurl, filename):
@@ -26,3 +35,49 @@ async def urllib_download(imgurl, filename):
 
     print(f"[download] Failed to download {imgurl} after 3 attempts.")
     return False
+
+
+def iter_messages():
+    """
+    Yields every logged message from message_history.json, oldest first, as a dict with keys:
+    author, authorID, content, channel, channelID, msgID, time
+    """
+    with open(MESSAGE_FILE_PATH, 'r') as f:
+        for line in f:
+            yield json.loads(line)
+
+
+def append_message(message_dict):
+    """Appends one message (same keys as iter_messages yields) to message_history.json."""
+    with open(MESSAGE_FILE_PATH, 'a') as f:
+        json.dump(message_dict, f)
+        f.write('\n')
+
+
+def phrase_pattern(phrase, fullwords=True):
+    """Case-insensitive regex for a phrase, optionally only matching it as a whole word."""
+    flags = re.IGNORECASE
+    if not fullwords:
+        return re.compile(phrase, flags)
+    if phrase.isalnum():
+        return re.compile(fr'\b{phrase}\b', flags)
+    return re.compile(fr'(?<!\w){phrase}(?!\w)', flags)
+
+
+def member_color(guild, user_id):
+    """A member's role color as a hex string, or the default color if they've left the server."""
+    member = guild.get_member(user_id)
+    return str(member.color if member else discord.Color.default())
+
+
+def save_graph(name):
+    """
+    Saves the current matplotlib figure to temp/<name> and closes it.
+    Returns (file, embed) ready to send, with the image shown inside the embed.
+    """
+    filename = temp_path(name)
+    plt.savefig(filename, bbox_inches='tight')
+    plt.close()
+    embed = discord.Embed()
+    embed.set_image(url=f"attachment://{name}")
+    return discord.File(filename), embed

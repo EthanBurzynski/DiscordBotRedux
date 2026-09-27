@@ -1,4 +1,4 @@
-"""/emojine: combine two emojis into one image (or gif)."""
+"""/emojine: combine two emojis into one image or gif."""
 import math
 import re
 
@@ -71,7 +71,7 @@ class Emoji(commands.Cog):
         await interaction.edit_original_response(content=None, embeds=[embed_file], attachments=[image_file])
 
 
-# -- image helpers (plain functions; they don't need the bot) --
+# -- image helpers --
 
 def pastegif(bg_fname, fg_fname, opacity, fg_scale, xoffset, yoffset):
     bg_im = Image.open(bg_fname)

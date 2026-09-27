@@ -69,10 +69,21 @@ SONG_DICT_NAMES = {
     "21": "Get It Twisted", "22": "查理", "23": "Gigachad Theme Lofi"
 }
 
+# discord IDs used by the events cog
+AUDIT_LOG_CHANNEL_ID = 1261771365539909674   # where audit log entries get posted
+SUS_BOT_ID = 812172490256285747              # the "when the x is x sus" bot
+SUS_BOT_IMMUNE_IDS = {731200697076547644, 164560262031081472}  # me, avery: sus bot replies to them get deleted
+CORGAL_ID = 247858291760300032
+
 # twt fetch retry limit
 MAX_FETCH_RETRIES = 5
 
 # cogs loaded at startup; add each new cog here as it's moved out of bot.py
 EXTENSIONS = [
     "cogs.emoji",
+    "cogs.twitter",
+    "cogs.music",
+    "cogs.graphs",
+    "cogs.stats",
+    "cogs.events",
 ]
