@@ -1,4 +1,3 @@
-"""/twt and /twttournament: random twitter images and 16-image voting brackets."""
 import asyncio
 import json
 import os
@@ -34,9 +33,7 @@ class Twitter(commands.Cog):
     @app_commands.command(name="twt", description="get twitter image. wow")
     async def twt(self, interaction):
         """
-        Picks a random tweet from the stored pool and displays it as an embed.
-        If the pool is running low (< 3 tweets), fetches more from Twitter first.
-        Has a 1/50 chance of calling the user a gooner.
+        picks random tweet from stored pool and displays it
         """
         await interaction.response.send_message("searching for image...")
 
@@ -93,9 +90,7 @@ class Twitter(commands.Cog):
     @app_commands.command(name="twttournament", description="tournament between 16 twitter images")
     async def twttournament(self, interaction):
         """
-        Pulls 16 tweets from the pool and runs a single-elimination bracket.
-        Users vote by reacting with 1️⃣ or 2️⃣ on each matchup.
-        Rounds: 16 → 8 → 4 → 2 → 1 winner.
+        pulls 16 random tweets from stored pool and runs a 4 round single-elim bracket
         """
         await interaction.response.send_message("searching for images...")
 
@@ -153,9 +148,7 @@ class Twitter(commands.Cog):
 
     async def get_twikit_client(self):
         """
-        Returns an authenticated twikit Client using browser cookies.
-        Cookies must be manually exported from your browser and saved
-        to TWIKIT_COOKIES_PATH (see setup guide).
+        returns authenticated twikit client
         """
         if self.twikit_client is not None:
             return self.twikit_client
@@ -173,11 +166,7 @@ class Twitter(commands.Cog):
 
     async def refill_tweet_storage(self, seen_ids):
         """
-        Searches Twitter for popular image tweets from accounts you follow.
-        Skips tweets that have already been seen (by ID).
-
-        Returns:
-            tuple of (new_tweets_list, updated_seen_ids_set)
+        searches twitter for image tweets with more than 1500 likes from followed accounts, skips already seen images
         """
         new_tweets = []
 
@@ -221,7 +210,9 @@ class Twitter(commands.Cog):
 # -- tournament helpers --
 
 async def fetch_with_retries(msg):
-    """Re-fetches a message, retrying on server errors. Returns None if every attempt fails."""
+    """
+    attempts to re-fetch a message up to MAX_FETCH_RETRIES times
+    """
     for attempt in range(MAX_FETCH_RETRIES):
         try:
             return await msg.fetch()
@@ -233,21 +224,8 @@ async def fetch_with_retries(msg):
 
 async def tournament_helper(msg, round_tweets, votes_needed, enable_scaling, round_num):
     """
-    Processes a list of tweets in pairs (matchups). For each pair:
-      1. Combines the two images side-by-side with a "1 or 2" divider
-      2. Posts the combined image and adds 1️⃣ and 2️⃣ reactions
-      3. Waits for enough votes (votes_needed total, including the bot's own reactions)
-      4. The side with more votes advances
-
-    Args:
-        msg:             The Discord message to edit for each matchup
-        round_tweets:    List of tweet dicts (must be even length)
-        votes_needed:    Total reaction count needed to proceed (includes bot's 2 reactions)
-        enable_scaling:  If True, lowers the vote threshold after 30 minutes of waiting
-        round_num:       Current bracket number (for display purposes)
-
-    Returns:
-        List of winning tweet dicts, or empty list if something went wrong
+    processes a list of tweets in pairs. for each pair, combine the two images, 
+    post combined image with 1 and 2 as reactions, wait for enough votes, and winner advances
     """
     winners = []
     time_waited = 0        # counts 15-second intervals
@@ -434,7 +412,7 @@ async def tournament_helper(msg, round_tweets, votes_needed, enable_scaling, rou
 
 
 def _validate_reactions(msg):
-    """Checks that the message's first two reactions are 1️⃣ and 2️⃣, in order."""
+    """checks that the message's first two reactions are 1 and 2, in order"""
     if len(msg.reactions) < 2:
         return False
     return str(msg.reactions[0]) == "1️⃣" and str(msg.reactions[1]) == "2️⃣"
@@ -443,7 +421,7 @@ def _validate_reactions(msg):
 # -- tweet parsing and storage --
 
 def parse_tweet(tweet):
-    """Turns a twikit tweet into the dict format stored in TWEET_FILE_PATH."""
+    """turns a twikit tweet into the dict format stored in TWEET_FILE_PATH"""
     from twikit.media import Photo
 
     image_url = "noimage"
@@ -464,7 +442,7 @@ def parse_tweet(tweet):
 
 
 def save_tweet_storage(tweets):
-    """Overwrites TWEET_FILE_PATH with the given list of tweet dicts."""
+    """overwrites TWEET_FILE_PATH with the given list of tweet dicts"""
     with open(TWEET_FILE_PATH, 'w') as f:
         for tweet in tweets:
             json.dump(tweet, f)
@@ -472,7 +450,7 @@ def save_tweet_storage(tweets):
 
 
 def load_tweet_storage():
-    """Reads TWEET_FILE_PATH and returns a list of tweet dicts (url, imgurl, username, msgID)."""
+    """reads TWEET_FILE_PATH and returns a list of tweet dicts (url, imgurl, username, msgID)"""
     tweets = []
     if not os.path.exists(TWEET_FILE_PATH):
         return tweets
@@ -485,7 +463,7 @@ def load_tweet_storage():
 
 
 def save_seen_ids(seen_ids):
-    """Overwrites TWEET_ID_FILE_PATH with the current set of seen IDs."""
+    """overwrites TWEET_ID_FILE_PATH with the current set of seen IDs"""
     with open(TWEET_ID_FILE_PATH, 'w') as f:
         for tweet_id in seen_ids:
             json.dump({"msgID": tweet_id}, f)
@@ -493,7 +471,7 @@ def save_seen_ids(seen_ids):
 
 
 def load_seen_ids():
-    """Reads TWEET_ID_FILE_PATH ({"msgID": ...} per line) and returns the set of seen IDs."""
+    """reads TWEET_ID_FILE_PATH ({"msgID": ...} per line) and returns the set of seen IDs"""
     seen = set()
     if not os.path.exists(TWEET_ID_FILE_PATH):
         return seen

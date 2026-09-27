@@ -1,4 +1,3 @@
-"""/emojine: combine two emojis into one image or gif."""
 import math
 import re
 

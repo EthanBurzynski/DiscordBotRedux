@@ -1,4 +1,3 @@
-"""Text-based stats: phrase search, message length, sus bot deletions, command usage."""
 import json
 import os
 from collections import Counter
@@ -12,7 +11,7 @@ from utils import iter_messages, phrase_pattern
 
 
 def ranked_list(counts, limit=None):
-    """Formats {name: count} as a numbered list, highest count first."""
+    """formats {name: count} as a numbered list, highest count first"""
     ranked = sorted(((val, key) for key, val in counts.items()), reverse=True)[:limit]
     return "".join(f'{i}. {key}: {val}\n' for i, (val, key) in enumerate(ranked, start=1))
 

@@ -1,4 +1,3 @@
-"""Background event handlers: message logging, the sus bot, audit log posts, command usage tracking."""
 import asyncio
 import json
 import os
@@ -59,7 +58,7 @@ class Events(commands.Cog):
                 break
 
     async def handle_sus_bot(self, msg, msgStored):
-        """"when the x is x sus" bot: auto-delete replies to certain people, otherwise let people vote it away."""
+        """"when the x is x sus" bot: auto-delete replies to certain people, otherwise let people vote it away"""
         # the message right before the sus bot's reply
         previous = [m async for m in msg.channel.history(limit=2)][1:]
         if previous and (previous[0].author.id in SUS_BOT_IMMUNE_IDS or previous[0].author.id == self.bot.user.id):
@@ -137,7 +136,7 @@ def load_deleted_log():
 
 
 def format_action(entry):
-    """Describes an audit log entry in words, or returns None for actions we don't post."""
+    """describes an audit log entry in words, or returns None"""
     match entry.action.name:
         case "guild_update":
             return f'updated the server: {entry.after.__dict__}'

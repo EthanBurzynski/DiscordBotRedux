@@ -1,8 +1,4 @@
-"""Settings shared across the bot: env vars, file paths, and static data.
-
-Nothing in here should import from bot.py or any cog, so every other
-module can safely import from config.
-"""
+# handles settings shared across the bot (env vars, file paths, static data)
 import os
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
@@ -21,9 +17,9 @@ ACTIVE_SERVER = int(os.getenv("ACTIVE_SERVER"))
 
 # folders, relative to this file so the bot works no matter where it's launched from
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"      # persistent bot data (json logs, storage, cookies)
+DATA_DIR = BASE_DIR / "data"      # persistent bot data
 TEMP_DIR = BASE_DIR / "temp"      # generated images/files that get overwritten each run
-ASSETS_DIR = BASE_DIR / "assets"  # static files the bot reads (lips.png, 1or2.png, songs)
+ASSETS_DIR = BASE_DIR / "assets"  # static files the bot reads
 SONGS_DIR = ASSETS_DIR / "songs"
 
 DATA_DIR.mkdir(exist_ok=True)
@@ -78,7 +74,7 @@ CORGAL_ID = 247858291760300032
 # twt fetch retry limit
 MAX_FETCH_RETRIES = 5
 
-# cogs loaded at startup; add each new cog here as it's moved out of bot.py
+# cogs loaded at startup
 EXTENSIONS = [
     "cogs.emoji",
     "cogs.twitter",
@@ -86,4 +82,6 @@ EXTENSIONS = [
     "cogs.graphs",
     "cogs.stats",
     "cogs.events",
+    "cogs.silly",
+    "cogs.admin",
 ]

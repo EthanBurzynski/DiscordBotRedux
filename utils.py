@@ -1,4 +1,4 @@
-"""Small helpers used by more than one cog. Must not import from bot.py or cogs."""
+# bunch of small helper functions used across cogs
 import asyncio
 import json
 import re
@@ -13,10 +13,7 @@ from config import MESSAGE_FILE_PATH, temp_path
 
 
 async def urllib_download(imgurl, filename):
-    """
-    Downloads an image from imgurl and saves it to filename.
-    Retries up to 3 times with a 3-second delay between attempts.
-    """
+    # downloads an image from imgurl and saves it to filename, retrying up to 3 times
     for attempt in range(3):
         try:
             async with aiohttp.ClientSession() as session:
@@ -38,24 +35,21 @@ async def urllib_download(imgurl, filename):
 
 
 def iter_messages():
-    """
-    Yields every logged message from message_history.json, oldest first, as a dict with keys:
-    author, authorID, content, channel, channelID, msgID, time
-    """
+    # gives every logged message from message_history.json, starting from the oldest, as a dict with keys (author, authorID, content, channel, channelID, msgID, time)
     with open(MESSAGE_FILE_PATH, 'r') as f:
         for line in f:
             yield json.loads(line)
 
 
 def append_message(message_dict):
-    """Appends one message (same keys as iter_messages yields) to message_history.json."""
+    # appends one message to message_history.json
     with open(MESSAGE_FILE_PATH, 'a') as f:
         json.dump(message_dict, f)
         f.write('\n')
 
 
 def phrase_pattern(phrase, fullwords=True):
-    """Case-insensitive regex for a phrase, optionally only matching it as a whole word."""
+    # case insensitive regex for a phrase
     flags = re.IGNORECASE
     if not fullwords:
         return re.compile(phrase, flags)
@@ -65,16 +59,13 @@ def phrase_pattern(phrase, fullwords=True):
 
 
 def member_color(guild, user_id):
-    """A member's role color as a hex string, or the default color if they've left the server."""
+    # get a member's role color as a hexadecimal string
     member = guild.get_member(user_id)
     return str(member.color if member else discord.Color.default())
 
 
 def save_graph(name):
-    """
-    Saves the current matplotlib figure to temp/<name> and closes it.
-    Returns (file, embed) ready to send, with the image shown inside the embed.
-    """
+    # saves current matplotlib figure to temp/[name] and closes it, returns (file, embed)
     filename = temp_path(name)
     plt.savefig(filename, bbox_inches='tight')
     plt.close()

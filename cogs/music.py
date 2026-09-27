@@ -1,4 +1,3 @@
-"""Voice channel music player and playlist management."""
 import ast
 import asyncio
 import json
@@ -66,7 +65,7 @@ class Music(commands.Cog):
         return [app_commands.Choice(name=name, value=name) for name in matches[:25]]
 
     def _songs_matching(self, interaction, current, in_playlist):
-        """Song choices filtered by whether they're in the playlist chosen in the 'playlistname' option."""
+        """song choices filtered by whether they're in the playlist chosen in the 'playlistname' option"""
         playlistname = None
         for option in interaction.data.get("options", []):
             if option.get("name") == "playlistname":
@@ -298,7 +297,7 @@ class Music(commands.Cog):
 # -- paginated list embeds --
 
 async def send_paginated(interaction, items, title):
-    """Sends an embed listing `items` 10 per page, with previous/next buttons."""
+    """sends an embed listing 'items', 10 per page, with previous/next buttons"""
     view = PaginatedListView(items, title, timeout=60)
     await interaction.response.send_message(embed=view.build_embed(), view=view)
     view.message = await interaction.original_response()

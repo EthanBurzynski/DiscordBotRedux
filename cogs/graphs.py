@@ -1,4 +1,3 @@
-"""Graph commands built from message_history.json."""
 import datetime
 import math
 import time
@@ -18,7 +17,7 @@ from dateutil.relativedelta import relativedelta
 from config import ACTIVE_SERVER
 from utils import iter_messages, save_graph, phrase_pattern, member_color
 
-# timestamp of the first message ever logged (keith's joining message)
+# timestamp of the first message ever logged
 FIRST_MESSAGE_TIME = 1535451470
 # 365 / 12 * 86400: the average number of seconds in a month
 SECONDS_PER_MONTH = 2628000
