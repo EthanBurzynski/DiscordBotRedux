@@ -21,7 +21,9 @@ class Emoji(commands.Cog):
     @app_commands.describe(foreground_scale = r"decimal number from 0.001 to 10.0 (0.9 being 90% scale for example)")
     @app_commands.describe(foreground_xoffset = r"decimal number from -2.0 to 2.0 (0.9 being 90% of the way to the right wall, for example)")
     @app_commands.describe(foreground_yoffset = r"decimal number from -2.0 to 2.0 (0.9 being 90% of the way to the top wall, for example)")
-    async def emojine(self, interaction, background_emoji : str, foreground_emoji : str, foreground_opacity : float = 1.0, foreground_scale : float = 1.0, foreground_xoffset : float = 0.0, foreground_yoffset : float = 0.0):
+    @app_commands.describe(background_rotation = "degrees to rotate the background emoji clockwise (90 being a right angle turn to the right, for example)")
+    @app_commands.describe(foreground_rotation = "degrees to rotate the foreground emoji clockwise (90 being a right angle turn to the right, for example)")
+    async def emojine(self, interaction, background_emoji : str, foreground_emoji : str, foreground_opacity : float = 1.0, foreground_scale : float = 1.0, foreground_xoffset : float = 0.0, foreground_yoffset : float = 0.0, background_rotation : float = 0.0, foreground_rotation : float = 0.0):
         await interaction.response.send_message("thinkin real hard... real hard...")
         if (foreground_scale > 10.0 or foreground_scale < 0.001):
             foreground_scale = 1.0
@@ -43,7 +45,7 @@ class Emoji(commands.Cog):
 
         # resizing and pasting logic
         if (bg_is_animated == 1 or fg_is_animated == 1):
-            pastegif(temp_path("emoji_bg.gif") if bg_is_animated else temp_path("emoji_bg.png"), temp_path("emoji_fg.gif") if fg_is_animated else temp_path("emoji_fg.png"), foreground_opacity, foreground_scale, foreground_xoffset, foreground_yoffset)
+            pastegif(temp_path("emoji_bg.gif") if bg_is_animated else temp_path("emoji_bg.png"), temp_path("emoji_fg.gif") if fg_is_animated else temp_path("emoji_fg.png"), foreground_opacity, foreground_scale, foreground_xoffset, foreground_yoffset, background_rotation, foreground_rotation)
             image_file = discord.File(temp_path("overlay.gif"))
             embed_file = discord.Embed()
             embed_file.set_image(url="attachment://overlay.gif")
@@ -51,16 +53,7 @@ class Emoji(commands.Cog):
             # opening images and resizing emojis to fit with the smallest emoji, then pasting
             bg_im = Image.open(temp_path("emoji_bg.png")).convert("RGBA")
             fg_im = Image.open(temp_path("emoji_fg.png")).convert("RGBA")
-            bg_im, fg_im = resizetosmallest(bg_im, fg_im)
-            r, g, b, a = fg_im.split()
-            a = a.point(lambda p: int(p * foreground_opacity))
-            fg_im = Image.merge("RGBA", (r, g, b, a))
-            fg_im = fg_im.resize((math.ceil(fg_im.width * foreground_scale), math.ceil(fg_im.height * foreground_scale)))
-            centered_pos = (
-                int(((bg_im.width - fg_im.width) // 2) + (((bg_im.width / 2) - fg_im.width / 2) * foreground_xoffset)),
-                int(((bg_im.height - fg_im.height) // 2) - (((bg_im.height / 2) - fg_im.height / 2) * foreground_yoffset))
-            )
-            bg_im.paste(fg_im, centered_pos, fg_im)
+            bg_im = combine(bg_im, fg_im, foreground_opacity, foreground_scale, foreground_xoffset, foreground_yoffset, background_rotation, foreground_rotation)
             # saving pasted image and sending to discord
             bg_im.save(temp_path("overlay.png"), format="PNG")
             image_file = discord.File(temp_path("overlay.png"))
@@ -72,7 +65,7 @@ class Emoji(commands.Cog):
 
 # -- image helpers --
 
-def pastegif(bg_fname, fg_fname, opacity, fg_scale, xoffset, yoffset):
+def pastegif(bg_fname, fg_fname, opacity, fg_scale, xoffset, yoffset, bg_rotation=0.0, fg_rotation=0.0):
     bg_im = Image.open(bg_fname)
     fg_im = Image.open(fg_fname)
     bg_frames = [frame.copy().convert("RGBA") for frame in ImageSequence.Iterator(bg_im)]
@@ -84,21 +77,33 @@ def pastegif(bg_fname, fg_fname, opacity, fg_scale, xoffset, yoffset):
         bg_frame = bg_frames[i % len(bg_frames)]
         fg_frame = fg_frames[i % len(fg_frames)]
 
-        bg_frame, fg_frame = resizetosmallest(bg_frame, fg_frame)
-        r, g, b, a = fg_frame.split()
-        a = a.point(lambda p: int(p * opacity))
-        fg_frame = Image.merge("RGBA", (r, g, b, a))
-        fg_frame = fg_frame.resize((math.ceil(fg_frame.width * fg_scale), math.ceil(fg_frame.height * fg_scale)))
-        centered_pos = (
-            int(((bg_frame.width - fg_frame.width) // 2) + (((bg_frame.width / 2) - fg_frame.width / 2) * xoffset)),
-            int(((bg_frame.height - fg_frame.height) // 2) - (((bg_frame.height / 2) - fg_frame.height / 2) * yoffset))
-        )
-        bg_frame.paste(fg_frame, centered_pos, fg_frame)
-        final_gif.append(bg_frame)
+        final_gif.append(combine(bg_frame, fg_frame, opacity, fg_scale, xoffset, yoffset, bg_rotation, fg_rotation))
 
     duration = bg_im.info.get("duration") or fg_im.info.get("duration") or 100
     final_gif[0].save(temp_path("overlay.gif"), format="GIF", save_all=True, append_images = final_gif[1:], loop=0, duration=duration)
 
+def combine(bg_im, fg_im, opacity, fg_scale, xoffset, yoffset, bg_rotation=0.0, fg_rotation=0.0):
+    bg_im, fg_im = resizetosmallest(bg_im, fg_im)
+    bg_im = rotate(bg_im, bg_rotation)
+    r, g, b, a = fg_im.split()
+    a = a.point(lambda p: int(p * opacity))
+    fg_im = Image.merge("RGBA", (r, g, b, a))
+    fg_im = fg_im.resize((math.ceil(fg_im.width * fg_scale), math.ceil(fg_im.height * fg_scale)))
+    fg_im = rotate(fg_im, fg_rotation)
+    centered_pos = (
+        int(((bg_im.width - fg_im.width) // 2) + ((bg_im.width / 2) * xoffset)),
+        int(((bg_im.height - fg_im.height) // 2) - ((bg_im.height / 2) * yoffset))
+    )
+    bg_im.paste(fg_im, centered_pos, fg_im)
+    return bg_im
+
+
+def rotate(im, degrees):
+    degrees %= 360
+    if degrees == 0:
+        return im
+    # PIL rotates counterclockwise, so negate for clockwise
+    return im.rotate(-degrees, resample=Image.BICUBIC, expand=True)
 
 def resizetosmallest(bg_im, fg_im):
     # Determine smallest overall width/height between the two images
